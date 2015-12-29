@@ -1,0 +1,12 @@
+{
+	"name": "nwjsnote",
+	"version": "0.0.1",
+	"private": "true",
+	"node-main": "./js/main.js",
+	"main": "./html/index.html",
+	"dependencies": {
+		"less": "2.5.3",
+		"jquery": "2.1.4",
+		"lokijs": "1.3.10"
+	}
+}
