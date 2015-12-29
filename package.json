@@ -8,5 +8,8 @@
 		"less": "2.5.3",
 		"jquery": "2.1.4",
 		"lokijs": "1.3.10"
+	},
+	"window": {
+		"icon": "/img/nwjsnote-light-v2.png"
 	}
 }
