@@ -1,6 +1,3 @@
-/*globals
-global, require, window, document, $, console
-*/
 var gui = require( 'nw.gui' ),
     notegui = gui.Window.get(),
     noteid,
@@ -18,7 +15,6 @@ $(function() {
 
     notegui.on( 'close', function() {
         process.mainModule.exports.closeNote(noteid);
-        notegui.close(true);
     });
 
     $(window).on( 'focus', function() {
@@ -28,7 +24,7 @@ $(function() {
     function updateNote() {
         //open a new file if necessary, then save continually to it
         process.mainModule.exports.saveNote(noteid, $('html').html());
-    };
+    }
 
     noteText.on( 'input', function() {
         updateNote();
@@ -43,4 +39,6 @@ $(function() {
       return false;
     }
   });
+  notegui.show();
+  noteText.get(0).focus();
 });

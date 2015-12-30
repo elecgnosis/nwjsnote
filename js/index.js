@@ -1,36 +1,27 @@
-/*globals
-global, require, window, document, $, console
-*/
-var gui = require( 'nw.gui' ),
-    maingui = gui.Window.get(),
+var maingui = require( 'nw.gui' ),
+    mainWindow = maingui.Window.get(),
     tray;
-    
-function init() {
-    tray = new gui.Tray({
-        title: 'nwjsnote',
-        tooltip: 'nwjsnote',
-        icon: '../img/nwjsnote-dark.png'
-    });
-}
-init();
 
 $( function() {
-    //close all note windows when the main program window is closed.
-    maingui.on('close', function() {
-        gui.App.quit();
-    });
+    process.mainModule.exports.initializeMainGui(maingui);
+
+    // mainWindow.on('close', function() {
+    //     maingui.App.quit();
+    // });
 
     $( '#new-note' ).on( 'click', function() {
-        var defaultTitle = process.mainModule.exports.addNewNote(),
+        var noteId = process.mainModule.exports.addNewNote(),
             $note = $('<div>', {
-                id: defaultTitle.split(' ')[1],
-                text: defaultTitle
+                id: noteId,
+                text: 'Note ' + noteId,
+                onclick: "process.mainModule.exports.openNote($(this).attr('id'));"
             });
-
-        $note.click(function() {
-            console.log('Note ' + $(this).attr('id') + ' clicked.' );
-            //handle existing note click
-        });
+        // 
+        // $note.click(function() {
+        //     console.log('Note ' + $(this).attr('id') + ' clicked.' );
+        //     //handle existing note click
+        //     process.mainModule.exports.openNote($(this).attr('id'));
+        // });
         $( '#note-list' ).append( $note );
     });
 });
