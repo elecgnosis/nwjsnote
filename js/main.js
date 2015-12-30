@@ -3,8 +3,8 @@ global, require, window, document, $, console, exports, process
 */
 var notes = {}, //read in notes from drive to fill this list instead of initializing as empty
     notesOrder = [],
-    focusedNote = '';
-
+    focusedNote = '',
+    fs = require('fs');
 exports.setFocusedNote = function(note) {
     focusedNote = note;
 };
@@ -47,6 +47,15 @@ exports.addNewNote = function() {
     notes[noteId] = newnote; //notesOrder.length is natural, whiles notesOrder[index] starts on 0
     notesOrder[noteId] = noteId;
     return defaultTitle;
+};
+
+exports.saveNote = function(noteid, note) {
+    var filename = './notes/Note ' + noteid + '.html';
+    fs.writeFile(filename, note, 'utf8', function (err) {
+        if (err) {
+            throw err;
+        }
+    });
 };
 
 exports.listOpenNotes = function() {

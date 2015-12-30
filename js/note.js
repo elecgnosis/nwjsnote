@@ -25,9 +25,9 @@ $(function() {
         process.mainModule.exports.setFocusedNote(noteid);
     });
 
-    function updateNote(data) {
-        console.log($('html').html());
+    function updateNote() {
         //open a new file if necessary, then save continually to it
+        process.mainModule.exports.saveNote(noteid, $('html').html());
     };
 
     noteText.on( 'input', function() {
