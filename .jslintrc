@@ -1,0 +1,8 @@
+{
+	"bitwise": false,
+	"browser": false,
+	"devel": true,
+	"node": true,
+	"this": true,
+	"white": true
+}

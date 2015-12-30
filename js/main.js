@@ -71,7 +71,7 @@ exports.listOpenNotes = function() {
                 }
             }
         }
-        i++
+        i++;
     }
     return openList || false;
 };

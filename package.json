@@ -11,5 +11,13 @@
 	},
 	"window": {
 		"icon": "/img/nwjsnote-light-v2.png"
+	},
+	"jshintConfig": {
+		"bitwise": false,
+		"browser": false,
+		"devel": true,
+		"node": true,
+		"this": true,
+		"white": true
 	}
 }
