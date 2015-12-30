@@ -1,12 +1,14 @@
 /*globals
 global, require, window, document, $, console
 */
-var noteid,
+var gui = require( 'nw.gui' ),
+    notegui = gui.Window.get(),
+    noteid,
     note,
     noteText;
 $(function() {
     if ( !$('.note-id').attr('id') ) {
-        noteid = global.getFocusedNote();
+        noteid = process.mainModule.exports.getFocusedNote();
         $('.note-id').attr('id', noteid);
     } else {
         noteid = $('.note-id').attr('id');
@@ -14,8 +16,13 @@ $(function() {
     note = $('html');
     noteText = $('#note');
 
+    notegui.on( 'close', function() {
+        process.mainModule.exports.closeNote(noteid);
+        notegui.close(true);
+    });
+
     $(window).on( 'focus', function() {
-        global.setFocusedNote(noteid);
+        process.mainModule.exports.setFocusedNote(noteid);
     });
 
     function updateNote(data) {
