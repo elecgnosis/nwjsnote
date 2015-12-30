@@ -44,7 +44,7 @@ exports.initializeMainGui = function(gui) {
     tray = new maingui.Tray({
         title: 'nwjsnote',
         tooltip: 'nwjsnote desktop note-taking app',
-        icon: 'nwjsnote-light-v2-tray.png'
+        icon: 'nwjsnote-light-v5-tray-16x.png'
     });
     mainWindow.show();
 };
