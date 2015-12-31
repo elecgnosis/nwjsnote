@@ -23,7 +23,7 @@ $(function() {
 
     function updateNote() {
         //open a new file if necessary, then save continually to it
-        process.mainModule.exports.saveNote(noteid, $('html').html());
+        process.mainModule.exports.saveNote(noteid, $('#note')[0].innerHTML);
     }
 
     noteText.on( 'input', function() {

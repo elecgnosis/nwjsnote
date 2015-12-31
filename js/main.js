@@ -1,24 +1,65 @@
 var notes = {}, //read in notes from drive to fill this list instead of initializing as empty
     notesOrder = [],
     focusedNote = '',
-    maingui,
-    mainWindow,
-    tray,
+    maingui = null,
+    mainguiSpecs = null,
+    mainWindow = null,
+    mainWindowSpecs = null,
+    tray = null,
+    appPayload = {},
+    LocalStorage = require('node-localStorage').LocalStorage,
     fs = require('fs'),
     pj = require('../package.json');
+    exports.localStorage = new LocalStorage('./cache');
+
+function initializeApp() {
+    appPayload = exports.localStorage.getItem('appPayload');
+    if (appPayload === null) {
+        appPayload = {
+            notes: notes,
+            notesOrder: notesOrder,
+            focusedNote: '',
+            mainguiSpecs: mainguiSpecs,
+            mainWindowSpecs: mainWindowSpecs
+        };
+    } else {
+        appPayload = JSON.parse(appPayload);
+        notes = appPayload.notes;
+        notesOrder = appPayload.notesOrder;
+        focusedNote = appPayload.focusedNote;
+        mainguiSpecs = appPayload.mainguiSpecs;
+        mainWindowSpecs = appPayload.mainWindowSpecs;
+    }
+}
+
+function finalizeApp() {
+    appPayload.notes = notes;
+    appPayload.notesOrder = notesOrder;
+    appPayload.focusedNote = focusedNote;
+    appPayload.mainguiSpecs = mainguiSpecs;
+    appPayload.mainWindowSpecs = mainWindowSpecs;
+    exports.localStorage.setItem('appPayload', JSON.stringify(appPayload));
+}
 
 function Note( title, isOpen, isVisible, width, height, noteId ) {
-    this.title = title ? title : 'Note ' + noteId;
+    this.title = title || 'Note ' + noteId;
     this.isOpen = isOpen && true;
-    this.isVisible = true;
-    this.width = width ? width : 200;
-    this.height = height ? height : 300;
+    this.isVisible = isVisible || true;
+    this.width = width || 200;
+    this.height = height || 300;
     this.noteId = noteId;
+    this.noteText = '';
+    this.noteLink = {
+                        id: noteId,
+                        text: 'Note ' + noteId,
+                        onclick: 'process.mainModule.exports.openNote($(this).attr("id"));',
+                        class: 'note-link'
+                    };
     this.gui = maingui.Window.open('../html/note.html', {
         width: this.width,
         height: this.height,
         title: 'Note ' + noteId,
-        toolbar: false, //comment this line out to easily access dev console in note windows.
+        toolbar: false, //comment this line out to access dev console in note windows.
         focus: true,
         min_width: 200,
         min_height: 300,
@@ -27,26 +68,31 @@ function Note( title, isOpen, isVisible, width, height, noteId ) {
 }
 
 exports.initializeMainGui = function(gui) {
+    initializeApp();
+    var noteLinks = [],
+        noteId = 0;
     mainWindow = gui.Window.get();
     maingui = gui;
+    if (notes.hasOwnProperty(noteId)) {
+        if (notesOrder.length === 1) {
+            noteLinks.push(notes[noteId].noteLink);
+        } else {
+            for (noteId; noteId < notesOrder.length; noteId++) {
+                noteLinks.push(notes[noteId].noteLink);
+            }
+        }
+    }
     mainWindow.on( 'close', function() {
-        fs.writeFile('./html/index.html',
-            mainWindow.window.document.getElementsByTagName('html')[0].innerHTML,
-            'utf8', function (err) {
-                if (err) {
-                    throw err;
-                } else {
-                    maingui.App.quit();
-                }
-        });
-
+        finalizeApp();
+        maingui.App.quit();
     });
     tray = new maingui.Tray({
         title: 'nwjsnote',
         tooltip: 'nwjsnote desktop note-taking app',
-        icon: 'nwjsnote-light-v5-tray-16x.png'
+        icon: 'img/nwjsnote-light-v5-tray-32x.png'
     });
     mainWindow.show();
+    return noteLinks;
 };
 
 exports.setFocusedNote = function(note) {
@@ -55,6 +101,10 @@ exports.setFocusedNote = function(note) {
 
 exports.getFocusedNote = function() {
     return focusedNote;
+};
+
+exports.getNotesOrder = function() {
+    return notesOrder;
 };
 
 exports.closeNote = function( note ) {
@@ -69,7 +119,7 @@ exports.openNote = function( note ) {
         targetNote.gui.focus();
     } else {
         targetNote.isOpen = true;
-        targetNote.gui = maingui.Window.open('../notes/Note ' + note + '.html', {
+        targetNote.gui = maingui.Window.open('../html/note.html', {
             width: targetNote.width,
             height: targetNote.height,
             title: targetNote.title,
@@ -79,6 +129,9 @@ exports.openNote = function( note ) {
             min_height: 300,
             show: false
         });
+        targetNote.gui.on( 'loaded', function() {
+            targetNote.gui.window.document.getElementById('note').innerHTML = targetNote.noteText;
+        });
     }
     exports.setFocusedNote(note);
 };
@@ -87,23 +140,18 @@ exports.setNoteTitle = function( note, title ) {
     notes[note].title = title;
 };
 
-exports.saveNote = function(noteId, note) {
-    var filename = './notes/Note ' + noteId + '.html';
-    fs.writeFile(filename, note, 'utf8', function (err) {
-        if (err) {
-            throw err;
-        }
-    });
+exports.saveNote = function(noteId, noteText) {
+    notes[noteId].noteText = noteText;
 };
 
 exports.addNewNote = function() {
     var noteId = notesOrder.length;
+    notes[noteId] = new Note( false, true, true, false, false, noteId );
     exports.setFocusedNote(noteId);
     exports.saveNote( noteId, '' );
-    notes[noteId] = new Note( false, true, true, false, false, noteId );
     notesOrder[noteId] = noteId;
 
-    return notes[noteId].noteId;
+    return notes[noteId].noteLink;
 };
 
 exports.listOpenNotes = function() {

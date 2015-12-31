@@ -4,12 +4,14 @@
 	"private": "true",
 	"node-main": "./js/main.js",
 	"main": "./html/index.html",
+	"inject-js-start": "./js/debug.js",
 	"dependencies": {
 		"less": "2.5.3",
-		"jquery": "2.1.4"
+		"jquery": "2.1.4",
+		"node-localstorage": "0.6.0"
 	},
 	"window": {
-		"icon": "/img/nwjsnote-light-v5.png",
+		"icon": "img/nwjsnote-light-v5-tray-32x.png",
 		"x": 0,
 		"y": 0,
 		"min_width": 400,
@@ -32,7 +34,8 @@
 			"$": true,
 			"console": true,
 			"exports": true,
-			"process": true
+			"process": true,
+			"localStorage": true
 		}
 	}
 }

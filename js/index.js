@@ -1,27 +1,20 @@
 var maingui = require( 'nw.gui' ),
     mainWindow = maingui.Window.get(),
-    tray;
+    tray,
+    noteLinks =[],
+    iterator = 0;
 
+//jQuery document ready shorthand
 $( function() {
-    process.mainModule.exports.initializeMainGui(maingui);
-
-    // mainWindow.on('close', function() {
-    //     maingui.App.quit();
-    // });
-
+    noteLinks = process.mainModule.exports.initializeMainGui(maingui);
+    if (noteLinks.length === 1) {
+        $( '#note-list' ).append( $('<div>', noteLinks[0]) );
+    } else {
+        for (iterator; iterator < noteLinks.length; iterator++) {
+            $( '#note-list' ).append( $('<div>', noteLinks[iterator]) );
+        }
+    }
     $( '#new-note' ).on( 'click', function() {
-        var noteId = process.mainModule.exports.addNewNote(),
-            $note = $('<div>', {
-                id: noteId,
-                text: 'Note ' + noteId,
-                onclick: "process.mainModule.exports.openNote($(this).attr('id'));"
-            });
-        // 
-        // $note.click(function() {
-        //     console.log('Note ' + $(this).attr('id') + ' clicked.' );
-        //     //handle existing note click
-        //     process.mainModule.exports.openNote($(this).attr('id'));
-        // });
-        $( '#note-list' ).append( $note );
+        $( '#note-list' ).append( $('<div>', process.mainModule.exports.addNewNote() ) );
     });
 });
