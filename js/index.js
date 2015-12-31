@@ -3,18 +3,40 @@ var maingui = require( 'nw.gui' ),
     tray,
     noteLinks =[],
     iterator = 0;
+function DeleteNoteLink(noteId) {
+    return $( '<span>', {
+        id: 'delete-' + noteId,
+        html: '(Delete)&nbsp;',
+        onclick: "deleteNoteLink($(this).attr('id').slice($(this).attr('id').indexOf('-')+1));",
+        class: 'delete-note-link'
+    });
+}
+
+function deleteNoteLink(noteId) {
+    $( '#' + noteId ).remove();
+    $( '#delete-' + noteId ).remove();
+    process.mainModule.exports.deleteNote(noteId);
+}
 
 //jQuery document ready shorthand
 $( function() {
+    var $noteList = $('#note-list');
     noteLinks = process.mainModule.exports.initializeMainGui(maingui);
+
     if (noteLinks.length === 1) {
-        $( '#note-list' ).append( $('<div>', noteLinks[0]) );
+        $noteList.append( new DeleteNoteLink(noteLinks[0].id) );
+        $noteList.append( $('<div>', noteLinks[0]) );
     } else {
         for (iterator; iterator < noteLinks.length; iterator++) {
-            $( '#note-list' ).append( $('<div>', noteLinks[iterator]) );
+            $noteList.append( new DeleteNoteLink(noteLinks[iterator].id) );
+            $noteList.append( $('<div>', noteLinks[iterator]) );
+            $noteList.append( $('<br>') );
         }
     }
     $( '#new-note' ).on( 'click', function() {
-        $( '#note-list' ).append( $('<div>', process.mainModule.exports.addNewNote() ) );
+        var $noteLink = $('<div>', process.mainModule.exports.addNewNote());
+        $noteList.append( new DeleteNoteLink($noteLink.attr('id') ) );
+        $noteList.append( $noteLink );
+        $noteList.append( $('<br>') );
     });
 });

@@ -32,7 +32,32 @@ function initializeApp() {
     }
 }
 
+//convenient method for acting on all notes in the notes Array.
+function actOnAllNotes(action) {
+    var noteId = 0;
+    if (notes.hasOwnProperty(noteId)) {
+        //notes has at least one entry
+        if (notesOrder.length === 1) {
+            //single entry, no iteration
+            action(notes[noteId]);
+        } else {
+            //multiple entries, iterate
+            for (noteId; noteId < notesOrder.length; noteId++) {
+                action(notes[noteId]);
+            }
+        }
+    }
+    // } else {
+    //     return false; //no entries
+    // }
+    // return true; //action complete
+}
+
 function finalizeApp() {
+    var note = {};
+    actOnAllNotes(function(note) {
+        note.isOpen = false;
+    });
     appPayload.notes = notes;
     appPayload.notesOrder = notesOrder;
     appPayload.focusedNote = focusedNote;
@@ -41,10 +66,11 @@ function finalizeApp() {
     exports.localStorage.setItem('appPayload', JSON.stringify(appPayload));
 }
 
-function Note( title, isOpen, isVisible, width, height, noteId ) {
+function Note( title, width, height, noteId ) {
     this.title = title || 'Note ' + noteId;
-    this.isOpen = isOpen && true;
-    this.isVisible = isVisible || true;
+    this.isOpen = true; // is this note open in the current session? initializes true.
+    this.isVisible = true; // was this note open on the last session? initializes true.
+    this.isDeleted = false;
     this.width = width || 200;
     this.height = height || 300;
     this.xcoord = '';
@@ -54,15 +80,15 @@ function Note( title, isOpen, isVisible, width, height, noteId ) {
     this.noteLink = {
                         id: noteId,
                         text: 'Note ' + noteId,
-                        onclick: 'process.mainModule.exports.openNote($(this).attr("id"));',
+                        onclick: "process.mainModule.exports.openNote($(this).attr('id'));",
                         class: 'note-link'
                     };
     this.gui = maingui.Window.open('../html/note.html', {
-        width: this.width,
+        icon: "img/nwjsnote-light-v5-tray-32x.png",
+		width: this.width,
         height: this.height,
         title: 'Note ' + noteId,
         toolbar: false, //comment this line out to access dev console in note windows.
-        focus: true,
         min_width: 200,
         min_height: 300,
         show: false
@@ -71,6 +97,7 @@ function Note( title, isOpen, isVisible, width, height, noteId ) {
 
 exports.initializeMainGui = function(gui) {
     initializeApp();
+    maingui = gui;
     var noteLinks = [],
         noteId = 0;
     mainWindow = gui.Window.get();
@@ -82,16 +109,15 @@ exports.initializeMainGui = function(gui) {
         && mainWindowSpecs.hasOwnProperty('ycoord') ) {
             mainWindow.moveTo(mainWindowSpecs.xcoord, mainWindowSpecs.ycoord);
     }
-    maingui = gui;
-    if (notes.hasOwnProperty(noteId)) {
-        if (notesOrder.length === 1) {
-            noteLinks.push(notes[noteId].noteLink);
-        } else {
-            for (noteId; noteId < notesOrder.length; noteId++) {
-                noteLinks.push(notes[noteId].noteLink);
+
+    actOnAllNotes(function(note) {
+        if (!note.isDeleted) {
+            noteLinks.push(note.noteLink);
+            if (note.isVisible) {
+                exports.openNote(note.noteId);
             }
         }
-    }
+    });
     mainWindow.on( 'close', function() {
         finalizeApp();
         maingui.App.quit();
@@ -125,10 +151,14 @@ exports.getNotesOrder = function() {
     return notesOrder;
 };
 
-exports.closeNote = function( note ) {
-    notes[note].gui.close(true);
-    notes[note].isOpen = false;
+exports.closeNote = function( noteId ) {
+    if (notes[noteId].isOpen) {
+        notes[noteId].gui.close(true);
+    }
+    notes[noteId].isOpen = false;
+    notes[noteId].isVisible = false;
     exports.setFocusedNote('');
+    finalizeApp();
 };
 
 exports.openNote = function( note ) {
@@ -137,19 +167,21 @@ exports.openNote = function( note ) {
         targetNote.gui.focus();
     } else {
         targetNote.isOpen = true;
+        targetNote.isVisible = true;
         targetNote.gui = maingui.Window.open('../html/note.html', {
+            icon: "img/nwjsnote-light-v5-tray-32x.png",
             width: targetNote.width,
             height: targetNote.height,
             title: targetNote.title,
             toolbar: false,
-            focus: true,
             min_width: 200,
             min_height: 300,
             show: false
         });
+        targetNote.gui.moveTo(targetNote.xcoord, targetNote.ycoord);
         targetNote.gui.on( 'loaded', function() {
             targetNote.gui.window.document.getElementById('note').innerHTML = targetNote.noteText;
-            targetNote.gui.moveTo(targetNote.xcoord, targetNote.ycoord);
+            targetNote.gui.focus();
         });
         targetNote.gui.on( 'blur', function() {
             finalizeApp();
@@ -174,14 +206,22 @@ exports.saveNote = function(noteId, noteText) {
     notes[noteId].noteText = noteText;
 };
 
+exports.deleteNote = function(noteId) {
+    notes[noteId].isDeleted = true;
+    exports.closeNote(noteId);
+}
+
 exports.addNewNote = function() {
     var noteId = notesOrder.length,
         targetNote = {};
-    notes[noteId] = new Note( false, true, true, false, false, noteId );
+    notes[noteId] = new Note( false, false, false, noteId );
     targetNote = notes[noteId];
     exports.setFocusedNote(noteId);
     exports.saveNote( noteId, '' );
     notesOrder[noteId] = noteId;
+    targetNote.gui.on( 'loaded', function() {
+        targetNote.gui.focus();
+    });
     targetNote.gui.on( 'blur', function() {
         finalizeApp();
     });
