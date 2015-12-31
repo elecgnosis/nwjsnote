@@ -53,17 +53,20 @@ function actOnAllNotes(action) {
     // return true; //action complete
 }
 
-function finalizeApp() {
-    var note = {};
-    actOnAllNotes(function(note) {
-        note.isOpen = false;
-    });
+function updateAppCache() {
     appPayload.notes = notes;
     appPayload.notesOrder = notesOrder;
     appPayload.focusedNote = focusedNote;
     appPayload.mainguiSpecs = mainguiSpecs;
     appPayload.mainWindowSpecs = mainWindowSpecs;
     exports.localStorage.setItem('appPayload', JSON.stringify(appPayload));
+}
+
+function finalizeApp() {
+    actOnAllNotes(function(note) {
+        note.isOpen = false;
+    });
+    updateAppCache();
 }
 
 function Note( title, width, height, noteId ) {
@@ -88,7 +91,7 @@ function Note( title, width, height, noteId ) {
 		width: this.width,
         height: this.height,
         title: 'Note ' + noteId,
-        toolbar: false, //comment this line out to access dev console in note windows.
+        //toolbar: false, //comment this line out to access dev console in note windows.
         min_width: 200,
         min_height: 300,
         show: false
@@ -98,8 +101,7 @@ function Note( title, width, height, noteId ) {
 exports.initializeMainGui = function(gui) {
     initializeApp();
     maingui = gui;
-    var noteLinks = [],
-        noteId = 0;
+    var noteLinks = [];
     mainWindow = gui.Window.get();
     if (mainWindowSpecs.hasOwnProperty('width')
         && mainWindowSpecs.hasOwnProperty('height') ) {
@@ -152,13 +154,10 @@ exports.getNotesOrder = function() {
 };
 
 exports.closeNote = function( noteId ) {
-    if (notes[noteId].isOpen) {
-        notes[noteId].gui.close(true);
-    }
+    notes[noteId].gui.close(true);
     notes[noteId].isOpen = false;
     notes[noteId].isVisible = false;
     exports.setFocusedNote('');
-    finalizeApp();
 };
 
 exports.openNote = function( note ) {
@@ -173,7 +172,7 @@ exports.openNote = function( note ) {
             width: targetNote.width,
             height: targetNote.height,
             title: targetNote.title,
-            toolbar: false,
+            //toolbar: false,
             min_width: 200,
             min_height: 300,
             show: false
@@ -184,7 +183,7 @@ exports.openNote = function( note ) {
             targetNote.gui.focus();
         });
         targetNote.gui.on( 'blur', function() {
-            finalizeApp();
+            updateAppCache();
         });
         targetNote.gui.on( 'move', function(x, y) {
             targetNote.xcoord = x;
@@ -195,6 +194,7 @@ exports.openNote = function( note ) {
             targetNote.height = height;
         });
     }
+
     exports.setFocusedNote(note);
 };
 
@@ -209,7 +209,7 @@ exports.saveNote = function(noteId, noteText) {
 exports.deleteNote = function(noteId) {
     notes[noteId].isDeleted = true;
     exports.closeNote(noteId);
-}
+};
 
 exports.addNewNote = function() {
     var noteId = notesOrder.length,
@@ -223,7 +223,7 @@ exports.addNewNote = function() {
         targetNote.gui.focus();
     });
     targetNote.gui.on( 'blur', function() {
-        finalizeApp();
+        updateAppCache();
     });
     targetNote.gui.on( 'move', function(x, y) {
         targetNote.xcoord = x;

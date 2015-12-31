@@ -15,6 +15,7 @@ $(function() {
 
     notegui.on( 'close', function() {
         process.mainModule.exports.closeNote(noteid);
+        require('fs').appendFileSync('log/error.log', 'note ' + noteid + ' closed.\n');
     });
 
     $(window).on( 'focus', function() {

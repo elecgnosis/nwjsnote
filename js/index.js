@@ -13,6 +13,7 @@ function DeleteNoteLink(noteId) {
 }
 
 function deleteNoteLink(noteId) {
+    $( '#' + noteId ).next().remove();
     $( '#' + noteId ).remove();
     $( '#delete-' + noteId ).remove();
     process.mainModule.exports.deleteNote(noteId);
