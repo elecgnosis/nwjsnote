@@ -2,9 +2,9 @@ var notes = {}, //read in notes from drive to fill this list instead of initiali
     notesOrder = [],
     focusedNote = '',
     maingui = null,
-    mainguiSpecs = null,
+    mainguiSpecs = {},
     mainWindow = null,
-    mainWindowSpecs = null,
+    mainWindowSpecs = {},
     tray = null,
     appPayload = {},
     LocalStorage = require('node-localStorage').LocalStorage,
@@ -47,6 +47,8 @@ function Note( title, isOpen, isVisible, width, height, noteId ) {
     this.isVisible = isVisible || true;
     this.width = width || 200;
     this.height = height || 300;
+    this.xcoord = '';
+    this.ycoord = '';
     this.noteId = noteId;
     this.noteText = '';
     this.noteLink = {
@@ -72,6 +74,14 @@ exports.initializeMainGui = function(gui) {
     var noteLinks = [],
         noteId = 0;
     mainWindow = gui.Window.get();
+    if (mainWindowSpecs.hasOwnProperty('width')
+        && mainWindowSpecs.hasOwnProperty('height') ) {
+            mainWindow.resizeTo(mainWindowSpecs.width, mainWindowSpecs.height);
+    }
+    if ( mainWindowSpecs.hasOwnProperty('xcoord')
+        && mainWindowSpecs.hasOwnProperty('ycoord') ) {
+            mainWindow.moveTo(mainWindowSpecs.xcoord, mainWindowSpecs.ycoord);
+    }
     maingui = gui;
     if (notes.hasOwnProperty(noteId)) {
         if (notesOrder.length === 1) {
@@ -90,6 +100,14 @@ exports.initializeMainGui = function(gui) {
         title: 'nwjsnote',
         tooltip: 'nwjsnote desktop note-taking app',
         icon: 'img/nwjsnote-light-v5-tray-32x.png'
+    });
+    mainWindow.on( 'move', function(x, y) {
+        mainWindowSpecs.xcoord = x;
+        mainWindowSpecs.ycoord = y;
+    });
+    mainWindow.on( 'resize', function(width, height) {
+        mainWindowSpecs.width = width;
+        mainWindowSpecs.height = height;
     });
     mainWindow.show();
     return noteLinks;
@@ -131,6 +149,18 @@ exports.openNote = function( note ) {
         });
         targetNote.gui.on( 'loaded', function() {
             targetNote.gui.window.document.getElementById('note').innerHTML = targetNote.noteText;
+            targetNote.gui.moveTo(targetNote.xcoord, targetNote.ycoord);
+        });
+        targetNote.gui.on( 'blur', function() {
+            finalizeApp();
+        });
+        targetNote.gui.on( 'move', function(x, y) {
+            targetNote.xcoord = x;
+            targetNote.ycoord = y;
+        });
+        targetNote.gui.on( 'resize', function(width, height) {
+            targetNote.width = width;
+            targetNote.height = height;
         });
     }
     exports.setFocusedNote(note);
@@ -145,12 +175,24 @@ exports.saveNote = function(noteId, noteText) {
 };
 
 exports.addNewNote = function() {
-    var noteId = notesOrder.length;
+    var noteId = notesOrder.length,
+        targetNote = {};
     notes[noteId] = new Note( false, true, true, false, false, noteId );
+    targetNote = notes[noteId];
     exports.setFocusedNote(noteId);
     exports.saveNote( noteId, '' );
     notesOrder[noteId] = noteId;
-
+    targetNote.gui.on( 'blur', function() {
+        finalizeApp();
+    });
+    targetNote.gui.on( 'move', function(x, y) {
+        targetNote.xcoord = x;
+        targetNote.ycoord = y;
+    });
+    targetNote.gui.on( 'resize', function(width, height) {
+        targetNote.width = width;
+        targetNote.height = height;
+    });
     return notes[noteId].noteLink;
 };
 
