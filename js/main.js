@@ -1,6 +1,5 @@
 var notes = {}, //read in notes from drive to fill this list instead of initializing as empty
     notesOrder = [],
-    focusedNote = '',
     maingui = null,
     mainguiSpecs = {},
     mainWindow = null,
@@ -18,7 +17,6 @@ function initializeApp() {
         appPayload = {
             notes: notes,
             notesOrder: notesOrder,
-            focusedNote: '',
             mainguiSpecs: mainguiSpecs,
             mainWindowSpecs: mainWindowSpecs
         };
@@ -26,13 +24,12 @@ function initializeApp() {
         appPayload = JSON.parse(appPayload);
         notes = appPayload.notes;
         notesOrder = appPayload.notesOrder;
-        focusedNote = appPayload.focusedNote;
         mainguiSpecs = appPayload.mainguiSpecs;
         mainWindowSpecs = appPayload.mainWindowSpecs;
     }
 }
 
-//convenient method for acting on all notes in the notes Array.
+//convenient method for acting on every note in notes[].
 function actOnAllNotes(action) {
     var noteId = 0;
     if (notes.hasOwnProperty(noteId)) {
@@ -47,16 +44,11 @@ function actOnAllNotes(action) {
             }
         }
     }
-    // } else {
-    //     return false; //no entries
-    // }
-    // return true; //action complete
 }
 
 function updateAppCache() {
     appPayload.notes = notes;
     appPayload.notesOrder = notesOrder;
-    appPayload.focusedNote = focusedNote;
     appPayload.mainguiSpecs = mainguiSpecs;
     appPayload.mainWindowSpecs = mainWindowSpecs;
     exports.localStorage.setItem('appPayload', JSON.stringify(appPayload));
@@ -69,33 +61,86 @@ function finalizeApp() {
     updateAppCache();
 }
 
-function Note( title, width, height, noteId ) {
-    this.title = title || 'Note ' + noteId;
+function saveNote(noteId, noteText) {
+    notes[noteId].noteText = noteText;
+}
+
+function updateNotePosition (noteId, x, y) {
+    var targetNote = notes[noteId];
+    targetNote.xcoord = x;
+    targetNote.ycoord = y;
+}
+
+function updateNoteSize (noteId, w, h) {
+    var targetNote = notes[noteId];
+    targetNote.width = w;
+    targetNote.height = h;
+}
+
+function closeNote ( noteId ) {
+    notes[noteId].gui.close(true);
+    notes[noteId].isOpen = false;
+    notes[noteId].isVisible = false;
+}
+
+function makeNoteWindow( gui, note ) {
+    var newWindow = gui.Window.open( '../html/note.html', {
+        icon: "img/nwjsnote-light-v5-tray-32x.png",
+		width: note.width,
+        height: note.height,
+        x: note.xcoord,
+        y: note.ycoord,
+        title: note.title,
+        toolbar: false, //comment this line out to access dev console in note windows.
+        min_width: 200,
+        min_height: 300,
+        show: false
+    } );
+    newWindow.on( 'loaded', function() {
+        newWindow.window.document.getElementById('note').innerHTML = note.noteText;
+        newWindow.window.document.getElementById('note').addEventListener( 'input', function() {
+            saveNote( note.noteId, newWindow.window.document.getElementById('note').innerHTML);
+        });
+        newWindow.show();
+        newWindow.focus();
+    });
+    newWindow.on( 'move', function(x, y) {
+        updateNotePosition(note.noteId, x, y);
+    });
+    newWindow.on( 'resize', function(width, height) {
+        updateNoteSize(note.noteId, width, height);
+    });
+    newWindow.on( 'blur', function() {
+        updateAppCache();
+    });
+    newWindow.on( 'close', function() {
+        closeNote( note.noteId );
+    });
+    return newWindow;
+}
+
+function setNoteWindowText( noteId ) {
+    notes[noteId].gui.window.document.getElementById('note').innerHTML = notes[noteId].noteText;
+}
+
+function Note( noteId ) {
+    this.title = 'Note ' + noteId;
     this.isOpen = true; // is this note open in the current session? initializes true.
     this.isVisible = true; // was this note open on the last session? initializes true.
     this.isDeleted = false;
-    this.width = width || 200;
-    this.height = height || 300;
+    this.width = 200;
+    this.height = 300;
     this.xcoord = '';
     this.ycoord = '';
     this.noteId = noteId;
     this.noteText = '';
     this.noteLink = {
-                        id: noteId,
-                        text: 'Note ' + noteId,
-                        onclick: "process.mainModule.exports.openNote($(this).attr('id'));",
-                        class: 'note-link'
-                    };
-    this.gui = maingui.Window.open('../html/note.html', {
-        icon: "img/nwjsnote-light-v5-tray-32x.png",
-		width: this.width,
-        height: this.height,
-        title: 'Note ' + noteId,
-        //toolbar: false, //comment this line out to access dev console in note windows.
-        min_width: 200,
-        min_height: 300,
-        show: false
-    });
+        id: noteId,
+        text: 'Note ' + noteId,
+        onclick: 'process.mainModule.exports.openNote(' + noteId + ');',
+        class: 'note-link'
+    };
+    this.gui = makeNoteWindow( maingui, this );
 }
 
 exports.initializeMainGui = function(gui) {
@@ -141,115 +186,49 @@ exports.initializeMainGui = function(gui) {
     return noteLinks;
 };
 
-exports.setFocusedNote = function(note) {
-    focusedNote = note;
-};
-
-exports.getFocusedNote = function() {
-    return focusedNote;
-};
-
 exports.getNotesOrder = function() {
     return notesOrder;
 };
 
-exports.closeNote = function( noteId ) {
-    notes[noteId].gui.close(true);
-    notes[noteId].isOpen = false;
-    notes[noteId].isVisible = false;
-    exports.setFocusedNote('');
-};
-
-exports.openNote = function( note ) {
-    var targetNote = notes[note];
+exports.openNote = function( noteId ) {
+    var targetNote = notes[noteId];
     if ( targetNote.isOpen ) {
         targetNote.gui.focus();
     } else {
         targetNote.isOpen = true;
         targetNote.isVisible = true;
-        targetNote.gui = maingui.Window.open('../html/note.html', {
-            icon: "img/nwjsnote-light-v5-tray-32x.png",
-            width: targetNote.width,
-            height: targetNote.height,
-            title: targetNote.title,
-            //toolbar: false,
-            min_width: 200,
-            min_height: 300,
-            show: false
-        });
-        targetNote.gui.moveTo(targetNote.xcoord, targetNote.ycoord);
-        targetNote.gui.on( 'loaded', function() {
-            targetNote.gui.window.document.getElementById('note').innerHTML = targetNote.noteText;
-            targetNote.gui.focus();
-        });
-        targetNote.gui.on( 'blur', function() {
-            updateAppCache();
-        });
-        targetNote.gui.on( 'move', function(x, y) {
-            targetNote.xcoord = x;
-            targetNote.ycoord = y;
-        });
-        targetNote.gui.on( 'resize', function(width, height) {
-            targetNote.width = width;
-            targetNote.height = height;
-        });
+        targetNote.gui = makeNoteWindow( maingui, targetNote );
     }
-
-    exports.setFocusedNote(note);
 };
 
 exports.setNoteTitle = function( note, title ) {
     notes[note].title = title;
 };
 
-exports.saveNote = function(noteId, noteText) {
-    notes[noteId].noteText = noteText;
-};
-
 exports.deleteNote = function(noteId) {
     notes[noteId].isDeleted = true;
-    exports.closeNote(noteId);
+    closeNote(noteId);
 };
 
 exports.addNewNote = function() {
     var noteId = notesOrder.length,
         targetNote = {};
-    notes[noteId] = new Note( false, false, false, noteId );
+    notes[noteId] = new Note( noteId );
     targetNote = notes[noteId];
-    exports.setFocusedNote(noteId);
-    exports.saveNote( noteId, '' );
     notesOrder[noteId] = noteId;
-    targetNote.gui.on( 'loaded', function() {
-        targetNote.gui.focus();
-    });
-    targetNote.gui.on( 'blur', function() {
-        updateAppCache();
-    });
-    targetNote.gui.on( 'move', function(x, y) {
-        targetNote.xcoord = x;
-        targetNote.ycoord = y;
-    });
-    targetNote.gui.on( 'resize', function(width, height) {
-        targetNote.width = width;
-        targetNote.height = height;
-    });
-    return notes[noteId].noteLink;
+    return targetNote.noteLink;
 };
 
 exports.listOpenNotes = function() {
-    var i = 0,
-        openList = '';
-    for (i in notes) {
-        if (notes.hasOwnProperty(i)) {
-            if (notes[i].isOpen) {
-                if ( openList === '' ) {
-                    openList = i;
-                } else {
-                    openList = openList + ', ' + i;
-                }
+    var openList = '';
+    actOnAllNotes(function(note) {
+        if (note.isOpen) {
+            if ( openList === '' ) {
+                openList = note.noteId.toString();
+            } else {
+                openList = openList + ', ' + note.noteId;
             }
         }
-        i++;
-    }
+    });
     return openList || false;
 };

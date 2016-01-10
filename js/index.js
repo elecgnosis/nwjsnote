@@ -7,7 +7,7 @@ function DeleteNoteLink(noteId) {
     return $( '<span>', {
         id: 'delete-' + noteId,
         html: '(Delete)&nbsp;',
-        onclick: "deleteNoteLink($(this).attr('id').slice($(this).attr('id').indexOf('-')+1));",
+        onclick: 'deleteNoteLink(' + noteId + ');',
         class: 'delete-note-link'
     });
 }
@@ -27,6 +27,7 @@ $( function() {
     if (noteLinks.length === 1) {
         $noteList.append( new DeleteNoteLink(noteLinks[0].id) );
         $noteList.append( $('<div>', noteLinks[0]) );
+        $noteList.append( $('<br>') );
     } else {
         for (iterator; iterator < noteLinks.length; iterator++) {
             $noteList.append( new DeleteNoteLink(noteLinks[iterator].id) );
