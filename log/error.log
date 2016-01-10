@@ -1,0 +1,26 @@
+[2016-01-10T20:05:07.311Z] Error: Unable to get render view in GetWindowObject
+    at Error (native)
+    at E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:152:22
+    at actOnAllNotes (E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:44:17)
+    at showAllOpenNotes (E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:150:5)
+    at Object.exports.initializeMainGui (E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:200:33)
+    at HTMLDocument.<anonymous> (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/js/index.js:25:44)
+    at fire (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3099:30)
+    at Object.self.fireWith [as resolveWith] (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3211:7)
+    at Function.jQuery.extend.ready (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3417:13)
+    at HTMLDocument.completed (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3433:9)
+--------------------------------------------------------------------------------
+
+[2016-01-10T20:05:46.481Z] Error: Unable to get render view in GetWindowObject
+    at Error (native)
+    at E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:152:22
+    at actOnAllNotes (E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:44:17)
+    at showAllOpenNotes (E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:150:5)
+    at Object.exports.initializeMainGui (E:\CODRDROP (BACKUPDISK091)\PROJECTS\nwjsnote\js\main.js:200:33)
+    at HTMLDocument.<anonymous> (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/js/index.js:25:44)
+    at fire (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3099:30)
+    at Object.self.fireWith [as resolveWith] (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3211:7)
+    at Function.jQuery.extend.ready (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3417:13)
+    at HTMLDocument.completed (file:///E:/CODRDROP%20(BACKUPDISK091)/PROJECTS/nwjsnote/node_modules/jquery/dist/jquery.js:3433:9)
+--------------------------------------------------------------------------------
+

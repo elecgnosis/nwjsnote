@@ -1,10 +1,11 @@
-var notes = {}, //read in notes from drive to fill this list instead of initializing as empty
+var notes = {},
     notesOrder = [],
     maingui = null,
     mainguiSpecs = {},
     mainWindow = null,
     mainWindowSpecs = {},
     tray = null,
+    traymenu = null,
     appPayload = {},
     LocalStorage = require('node-localStorage').LocalStorage,
     fs = require('fs'),
@@ -55,7 +56,9 @@ function updateAppCache() {
 }
 
 function finalizeApp() {
+    mainWindow.hide();
     actOnAllNotes(function(note) {
+        note.gui.hide();
         note.isOpen = false;
     });
     updateAppCache();
@@ -143,10 +146,21 @@ function Note( noteId ) {
     this.gui = makeNoteWindow( maingui, this );
 }
 
+function showAllOpenNotes() {
+    actOnAllNotes(function(note) {
+        if (!note.isDeleted && note.isOpen) {
+            note.gui.focus();
+        }
+    });
+}
+
 exports.initializeMainGui = function(gui) {
+    var noteLinks = [],
+        traymenuexit,
+        traymenushowallopen,
+        traymenuopenall;
     initializeApp();
     maingui = gui;
-    var noteLinks = [];
     mainWindow = gui.Window.get();
     if (mainWindowSpecs.hasOwnProperty('width')
         && mainWindowSpecs.hasOwnProperty('height') ) {
@@ -165,15 +179,32 @@ exports.initializeMainGui = function(gui) {
             }
         }
     });
+
     mainWindow.on( 'close', function() {
         finalizeApp();
         maingui.App.quit();
     });
+
     tray = new maingui.Tray({
         title: 'nwjsnote',
         tooltip: 'nwjsnote desktop note-taking app',
         icon: 'img/nwjsnote-light-v5-tray-32x.png'
     });
+
+    traymenu = new maingui.Menu();
+    traymenuexit = new maingui.MenuItem({label: 'Exit' });
+    traymenuexit.click = function() {
+        mainWindow.close();
+    };
+    traymenushowallopen = new maingui.MenuItem({label: 'Show All Open Notes'});
+    traymenushowallopen.click = function() {
+        showAllOpenNotes();
+    }
+
+    traymenu.append(traymenushowallopen);
+    traymenu.append(traymenuexit);
+    tray.menu = traymenu;
+
     mainWindow.on( 'move', function(x, y) {
         mainWindowSpecs.xcoord = x;
         mainWindowSpecs.ycoord = y;
