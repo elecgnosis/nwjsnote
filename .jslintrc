@@ -1,8 +1,18 @@
 {
-	"bitwise": false,
-	"browser": false,
-	"devel": true,
-	"node": true,
-	"this": true,
-	"white": true
+    "bitwise": false,
+    "browser": false,
+    "devel": true,
+    "node": true,
+    "white": true,
+    "globals": {
+        "global": true,
+        "require": true,
+        "window": true,
+        "document": true,
+        "$": true,
+        "console": true,
+        "exports": true,
+        "process": true,
+        "localStorage": true
+    }
 }
